@@ -1,0 +1,30 @@
+{
+  "build": {
+    "preview": {
+      "android": {
+        "buildType": "apk",
+        "distribution": "internal"
+      }
+    },
+    "development": {
+      "developmentClient": true,
+      "android": {
+        "buildType": "apk",
+        "distribution": "internal",
+        "withoutCredentials": true
+      }
+    },
+    "simulator": {
+      "android": {
+        "buildType": "apk",
+        "withoutCredentials": true
+      }
+    },
+    "production": {}
+  },
+  "cli": {
+    "version": ">= 0.60.0",
+    "requireCommit": false,
+    "appVersionSource": "remote"
+  }
+} 
