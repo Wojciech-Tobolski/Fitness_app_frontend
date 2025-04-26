@@ -13,19 +13,17 @@ export const BACKEND_PORT = "80"; // Port HTTP
 // Pełne adresy dla backendowych endpointów
 export const getApiUrl = () => {
   if (DEV_MODE) {
-    return `http://${BACKEND_IP}:${BACKEND_PORT}/api`;
-  } else {
-    return "http://app.trenerwitek.pl/api";
+    return 'http://localhost:8081/api'; // Use proxy during development
   }
+  return 'https://app.trenerwitek.pl/api';
 };
 
 // Bazowy URL serwera (bez /api)
 export const getBaseUrl = () => {
   if (DEV_MODE) {
-    return `http://${BACKEND_IP}:${BACKEND_PORT}`;
-  } else {
-    return "http://app.trenerwitek.pl";
+    return 'http://localhost:8081';
   }
+  return 'https://app.trenerwitek.pl';
 };
 
 /**

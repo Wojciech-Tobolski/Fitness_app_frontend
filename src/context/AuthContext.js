@@ -61,12 +61,6 @@ export const AuthProvider = ({ children }) => {
             console.log("[AuthContext] Login successful, fetching user data");
             const user = await authService.getCurrentUser();
             setUserData(user);
-
-            // Refresh token in memory to ensure it's properly stored
-            if (result.token) {
-              console.log("[AuthContext] Re-storing token to ensure freshness");
-              await authService.setToken(result.token);
-            }
           } catch (e) {
             console.log(
               "[AuthContext] Failed to fetch user data after login:",
@@ -102,22 +96,18 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(true);
       try {
         await authService.logout();
-        // Dodanie opóźnienia, aby upewnić się, że tokeny zostały wyczyszczone
-        await new Promise((resolve) => setTimeout(resolve, 500));
         setUserToken(null);
         setUserData(null);
-        // Dodaj ponowne ustawienie stanu błędu na null
-        setError(null);
-      } catch (error) {
-        console.error("[AuthContext] Error during logout:", error);
+      } catch (e) {
+        console.error("[AuthContext] Logout error:", e);
       } finally {
         setIsLoading(false);
       }
     },
 
+    isLoading,
     userToken,
     userData,
-    isLoading,
     error,
   };
 

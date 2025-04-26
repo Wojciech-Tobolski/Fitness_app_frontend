@@ -33,7 +33,7 @@ class ExerciseService {
         }`
       );
       // Use endpoint with trailing slash to avoid Django's 301 redirect
-      return await apiService.get("/exercises/", params);
+      return await apiService.get(`/exercises?tag_id=${tagId}`);
     } catch (error) {
       console.error("[ExerciseService] Get exercises error:", error);
       // Return empty array instead of throwing to prevent black screens
@@ -70,6 +70,22 @@ class ExerciseService {
    */
   getFullImageUrl(relativePath) {
     return apiService.getFullMediaUrl(relativePath);
+  }
+
+  async getExercisesByTag(tagId) {
+    try {
+      console.log(`Fetching exercises for tag ID: ${tagId}...`);
+      const data = await apiService.get(`/exercises/?tag_id=${tagId}`);
+      console.log("Exercises response:", data);
+      return data;
+    } catch (error) {
+      console.error(`Error fetching exercises for tag ID ${tagId}:`, error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
+      return [];
+    }
   }
 }
 

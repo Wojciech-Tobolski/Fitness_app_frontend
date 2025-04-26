@@ -1,4 +1,6 @@
 import apiService from "./ApiService";
+import axios from "axios";
+import { getApiUrl } from "../config/config";
 
 /**
  * Service handling authentication operations
@@ -26,22 +28,37 @@ class AuthService {
   async login(username, password) {
     try {
       console.log(`[AuthService] Login attempt: ${username}`);
-      // Auth endpoint uses Django's token authentication
-      const response = await apiService.post("/auth", {
+      console.log(`[AuthService] Making request to /auth endpoint`);
+      
+      const response = await axios.post(`${getApiUrl()}/auth`, {
         username,
         password,
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (response && response.token) {
-        // Store token using the ApiService method
-        await apiService.setAuthTokens(response.token, null);
+      console.log(`[AuthService] Login response:`, response);
+
+      if (response && response.data && response.data.token) {
+        console.log(`[AuthService] Login successful, storing token`);
+        // Store token in both memory and storage
+        await apiService.setToken(response.data.token);
+        
+        // Also set it in the auth context
+        if (this.onTokenSet) {
+          this.onTokenSet(response.data.token);
+        }
 
         return {
           success: true,
+          token: response.data.token,
           user: { username },
         };
       } else {
         console.error("[AuthService] Login failed: Invalid response format");
+        console.error("[AuthService] Response:", response);
         return {
           success: false,
           error: "Błędne dane logowania",
@@ -49,11 +66,12 @@ class AuthService {
       }
     } catch (error) {
       console.error("[AuthService] Login error:", error);
+      console.error("[AuthService] Error details:", error.message);
+      console.error("[AuthService] Error response:", error.response?.data);
 
-      // Always return same simple error message regardless of actual error
       return {
         success: false,
-        error: "Błędne dane logowania",
+        error: error.message || "Błędne dane logowania",
       };
     }
   }
@@ -88,10 +106,15 @@ class AuthService {
         return null;
       }
 
-      const userData = await apiService.get("/user/current/");
-      console.log("[AuthService] Current user data retrieved");
+      const response = await axios.get(`${getApiUrl()}/user/current/`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Token ${token}`
+        }
+      });
 
-      return userData;
+      console.log("[AuthService] Current user data retrieved");
+      return response.data;
     } catch (error) {
       console.error("[AuthService] Error fetching current user:", error);
 
@@ -178,16 +201,19 @@ class AuthService {
   }
 
   /**
-   * Sets the authentication token
-   * @param {string} token Authentication token
+   * Set the authentication token
+   * @param {string} token - The token to set
    * @returns {Promise<void>}
    */
   async setToken(token) {
     try {
-      console.log("[AuthService] Setting token");
-      await apiService.setAuthTokens(token, null);
+      await apiService.setToken(token);
+      if (this.onTokenSet) {
+        this.onTokenSet(token);
+      }
     } catch (error) {
       console.error("[AuthService] Error setting token:", error);
+      throw error;
     }
   }
 }

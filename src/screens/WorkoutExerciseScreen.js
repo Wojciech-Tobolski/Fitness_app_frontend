@@ -268,22 +268,27 @@ const WorkoutExerciseScreen = ({ route, navigation }) => {
 
   const sendAllFeedbacks = async (feedbacks) => {
     try {
-      // Wyślij wszystkie feedbacki na backend
-      const feedbacksArray = Object.entries(feedbacks).map(
-        ([workoutExerciseId, data]) => ({
-          workout_exercise_id: workoutExerciseId,
-          comment: data.comment,
-          rating: data.rating,
-        })
-      );
+      // Wyślij feedback dla każdego ćwiczenia osobno
+      for (const [workoutExerciseId, data] of Object.entries(feedbacks)) {
+        try {
+          console.log(`Sending feedback for workout exercise ID: ${workoutExerciseId}`);
+          await apiService.post(`/workoutexercises/${workoutExerciseId}/feedback/`, {
+            comment: data.comment,
+            rating: data.rating
+          });
+          console.log(`Feedback sent successfully for workout exercise ID: ${workoutExerciseId}`);
+        } catch (error) {
+          console.error(`Error sending feedback for workout exercise ID ${workoutExerciseId}:`, error);
+          if (error.response) {
+            console.error("Response status:", error.response.status);
+            console.error("Response data:", error.response.data);
+          }
+        }
+      }
 
-      await apiService.post(`/workouts/${workoutId}/feedback/`, {
-        feedbacks: feedbacksArray,
-      });
-
-      console.log("All feedbacks sent successfully");
+      console.log("All feedbacks processed");
     } catch (error) {
-      console.error("Error sending all feedbacks:", error);
+      console.error("Error in sendAllFeedbacks:", error);
       Alert.alert(
         "Uwaga",
         "Nie udało się wysłać wszystkich opinii, ale trening został ukończony."

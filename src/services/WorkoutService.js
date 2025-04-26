@@ -10,11 +10,16 @@ class WorkoutService {
    */
   async getGeneralWorkouts() {
     try {
-      console.log("[WorkoutService] Fetching general workouts");
-      return await apiService.get("/workouts/general/");
+      console.log("Fetching general workouts...");
+      const response = await apiService.get("/workouts/general/");
+      console.log("General workouts response:", response);
+      return response.data || [];
     } catch (error) {
-      console.error("[WorkoutService] Get general workouts error:", error);
-      // Return empty array instead of throwing to prevent black screens
+      console.error("Error fetching general workouts:", error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       return [];
     }
   }
@@ -25,11 +30,16 @@ class WorkoutService {
    */
   async getPersonalWorkouts() {
     try {
-      console.log("[WorkoutService] Fetching personal workouts");
-      return await apiService.get("/workouts/personal/");
+      console.log("Fetching personal workouts...");
+      const response = await apiService.get("/workouts/personal/");
+      console.log("Personal workouts response:", response);
+      return response.data || [];
     } catch (error) {
-      console.error("[WorkoutService] Get personal workouts error:", error);
-      // Return empty array instead of throwing to prevent black screens
+      console.error("Error fetching personal workouts:", error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       return [];
     }
   }
@@ -40,11 +50,16 @@ class WorkoutService {
    */
   async getTodayWorkouts() {
     try {
-      console.log("[WorkoutService] Fetching today workouts");
-      return await apiService.get("/workouts/personal/today/");
+      console.log("Fetching today's workouts...");
+      const response = await apiService.get("/workouts/personal/today/");
+      console.log("Today's workouts response:", response);
+      return response.data || [];
     } catch (error) {
-      console.error("[WorkoutService] Get today workouts error:", error);
-      // Return empty array instead of throwing to prevent black screens
+      console.error("Error fetching today's workouts:", error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       return [];
     }
   }
@@ -56,16 +71,16 @@ class WorkoutService {
    */
   async getWorkoutDetails(workoutId) {
     try {
-      console.log(
-        `[WorkoutService] Fetching workout details for ID ${workoutId}`
-      );
-      return await apiService.get(`/workout/${workoutId}/`);
+      console.log(`Fetching workout details for ID: ${workoutId}...`);
+      const response = await apiService.get(`/workout/${workoutId}/`);
+      console.log("Workout details response:", response);
+      return response.data || {};
     } catch (error) {
-      console.error(
-        `[WorkoutService] Get workout details error for ID ${workoutId}:`,
-        error
-      );
-      // Return empty object instead of throwing to prevent black screens
+      console.error(`Error fetching workout details for ID ${workoutId}:`, error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       return {};
     }
   }
@@ -77,16 +92,16 @@ class WorkoutService {
    */
   async getWorkoutExerciseDetails(workoutExerciseId) {
     try {
-      console.log(
-        `[WorkoutService] Fetching workout exercise details for ID ${workoutExerciseId}`
-      );
-      return await apiService.get(`/workoutexercises/${workoutExerciseId}/`);
+      console.log(`Fetching workout exercise details for ID: ${workoutExerciseId}...`);
+      const response = await apiService.get(`/workoutexercises/${workoutExerciseId}/`);
+      console.log("Workout exercise details response:", response);
+      return response.data || {};
     } catch (error) {
-      console.error(
-        `[WorkoutService] Get workout exercise details error for ID ${workoutExerciseId}:`,
-        error
-      );
-      // Return empty object instead of throwing to prevent black screens
+      console.error(`Error fetching workout exercise details for ID ${workoutExerciseId}:`, error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       return {};
     }
   }
@@ -99,19 +114,20 @@ class WorkoutService {
    */
   async submitFeedback(workoutExerciseId, feedbackData) {
     try {
-      console.log(
-        `[WorkoutService] Submitting feedback for workout exercise ID ${workoutExerciseId}`
-      );
-      return await apiService.post(
+      console.log(`Submitting feedback for workout exercise ID: ${workoutExerciseId}...`);
+      console.log("Feedback data:", feedbackData);
+      const response = await apiService.post(
         `/workoutexercises/${workoutExerciseId}/feedback/`,
         feedbackData
       );
+      console.log("Feedback submission response:", response);
+      return response.data || {};
     } catch (error) {
-      console.error(
-        `[WorkoutService] Submit feedback error for ID ${workoutExerciseId}:`,
-        error
-      );
-      // Return empty object instead of throwing to prevent black screens
+      console.error(`Error submitting feedback for workout exercise ID ${workoutExerciseId}:`, error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
       return {};
     }
   }
@@ -122,11 +138,17 @@ class WorkoutService {
    */
   async getUserWorkouts() {
     try {
-      console.log("[WorkoutService] Fetching user workouts");
-      return await this.getPersonalWorkouts();
+      console.log("Fetching user workouts...");
+      const response = await this.getPersonalWorkouts();
+      console.log("User workouts response:", response);
+      return response;
     } catch (error) {
-      console.error("[WorkoutService] Get user workouts error:", error);
-      throw error;
+      console.error("Error fetching user workouts:", error);
+      if (error.response) {
+        console.error("Response status:", error.response.status);
+        console.error("Response data:", error.response.data);
+      }
+      return [];
     }
   }
 

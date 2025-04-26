@@ -13,6 +13,32 @@ import {
 // Constants
 const TIMEOUT_MS = 30000;
 
+// Storage helper functions
+const isWeb = Platform.OS === 'web';
+
+const storage = {
+  async getItem(key) {
+    if (isWeb) {
+      return localStorage.getItem(key);
+    }
+    return await SecureStore.getItemAsync(key);
+  },
+  async setItem(key, value) {
+    if (isWeb) {
+      localStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  },
+  async removeItem(key) {
+    if (isWeb) {
+      localStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  }
+};
+
 /**
  * Class managing API communication
  */
@@ -51,9 +77,9 @@ class ApiService {
     const client = axios.create({
       baseURL: this.baseUrl,
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      timeout: TIMEOUT_MS,
+      timeout: TIMEOUT_MS
     });
 
     // Add request interceptor
@@ -72,14 +98,14 @@ class ApiService {
   }
 
   /**
-   * Initializes token from SecureStore
+   * Initializes token from storage
    * @private
    */
   async _initializeToken() {
     try {
-      this.token = await SecureStore.getItemAsync(TOKEN_KEY);
-      this.refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-      const expiryStr = await SecureStore.getItemAsync(TOKEN_EXPIRY_KEY);
+      this.token = await storage.getItem(TOKEN_KEY);
+      this.refreshToken = await storage.getItem(REFRESH_TOKEN_KEY);
+      const expiryStr = await storage.getItem(TOKEN_EXPIRY_KEY);
       this.tokenExpiry = expiryStr ? parseInt(expiryStr, 10) : null;
 
       console.log(
@@ -104,7 +130,7 @@ class ApiService {
   }
 
   /**
-   * Saves authentication tokens in SecureStore and class instance
+   * Saves authentication tokens in storage and class instance
    * @param {string} token Authentication token
    * @param {string} refreshToken Refresh token (optional)
    * @param {number} expiresIn Expiration time in seconds (optional)
@@ -115,19 +141,19 @@ class ApiService {
       this.token = token;
 
       // Store token
-      await SecureStore.setItemAsync(TOKEN_KEY, token);
+      await storage.setItem(TOKEN_KEY, token);
 
       // Handle refresh token if provided
       if (refreshToken) {
         this.refreshToken = refreshToken;
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+        await storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
       }
 
       // Handle expiry if provided
       if (expiresIn) {
         const expiryTime = Date.now() + expiresIn * 1000;
         this.tokenExpiry = expiryTime;
-        await SecureStore.setItemAsync(TOKEN_EXPIRY_KEY, expiryTime.toString());
+        await storage.setItem(TOKEN_EXPIRY_KEY, expiryTime.toString());
       }
 
       console.log("[ApiService] Auth tokens saved successfully");
@@ -140,20 +166,23 @@ class ApiService {
   /**
    * Set authentication tokens and store them
    * @param {string} accessToken - JWT access token
-   * @param {string} refreshToken - JWT refresh token
+   * @param {string} refreshToken - JWT refresh token (optional)
    * @returns {Promise<void>}
    * @public
    */
-  async setToken(accessToken, refreshToken) {
+  async setToken(accessToken, refreshToken = null) {
     try {
       this.token = accessToken;
       this.refreshToken = refreshToken;
 
-      // Store tokens in SecureStore
-      await SecureStore.setItemAsync(TOKEN_KEY, accessToken);
+      // Store tokens in storage
+      await storage.setItem(TOKEN_KEY, accessToken);
       if (refreshToken) {
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+        await storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
       }
+
+      // Update axios default headers
+      this.apiClient.defaults.headers.common.Authorization = `Token ${accessToken}`;
 
       console.log("[ApiService] Tokens set successfully");
     } catch (error) {
@@ -183,10 +212,10 @@ class ApiService {
         }
       }
 
-      // Remove tokens from SecureStore
-      await SecureStore.deleteItemAsync(TOKEN_KEY);
-      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-      await SecureStore.deleteItemAsync(TOKEN_EXPIRY_KEY);
+      // Remove tokens from storage
+      await storage.removeItem(TOKEN_KEY);
+      await storage.removeItem(REFRESH_TOKEN_KEY);
+      await storage.removeItem(TOKEN_EXPIRY_KEY);
 
       console.log("[ApiService] Tokens cleared successfully");
     } catch (error) {
@@ -203,7 +232,7 @@ class ApiService {
   async getToken() {
     try {
       if (this.token) return this.token;
-      return await SecureStore.getItemAsync(TOKEN_KEY);
+      return await storage.getItem(TOKEN_KEY);
     } catch (error) {
       console.error("[ApiService] Error getting token:", error);
       return null;
@@ -218,7 +247,7 @@ class ApiService {
   async getRefreshToken() {
     try {
       if (this.refreshToken) return this.refreshToken;
-      return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      return await storage.getItem(REFRESH_TOKEN_KEY);
     } catch (error) {
       console.error("[ApiService] Error getting refresh token:", error);
       return null;
@@ -280,38 +309,19 @@ class ApiService {
   }
 
   /**
-   * Request interceptor - adds authentication token
-   * @param {Object} config Request configuration
-   * @returns {Promise<Object>} Modified request configuration
+   * Request interceptor to add auth token to requests
+   * @param {Object} config Axios request config
+   * @returns {Object} Modified config
    * @private
    */
   async _requestInterceptor(config) {
     try {
-      // Skip adding auth header for token refresh requests
-      if (config.skipAuthInterceptor) {
-        return config;
-      }
-
-      // Get token (using cached value if available)
       const token = await this.getToken();
-
       if (token) {
-        // Make sure headers are initialized
         config.headers = config.headers || {};
         config.headers.Authorization = `Token ${token}`;
-        console.log(
-          `[ApiService] Request with token: ${config.method?.toUpperCase()} ${
-            config.url
-          }`
-        );
-      } else {
-        console.log(
-          `[ApiService] Request without token: ${config.method?.toUpperCase()} ${
-            config.url
-          }`
-        );
+        console.log(`[ApiService] Request with token: ${config.method?.toUpperCase()} ${config.url}`);
       }
-
       return config;
     } catch (error) {
       console.error("[ApiService] Request interceptor error:", error);
@@ -553,120 +563,19 @@ class ApiService {
    */
   async request(method, endpoint, data = null, options = {}) {
     try {
-      // Check token validity before request
-      const isValidToken = await this._isTokenValid();
-      console.log(`[ApiService] Using token for request: ${isValidToken}`);
+      console.log(`[ApiService] Making ${method} request to ${endpoint}`);
+      console.log(`[ApiService] Base URL: ${this.baseUrl}`);
+      console.log(`[ApiService] Full URL: ${this.baseUrl}${endpoint}`);
+      console.log(`[ApiService] Request data:`, data);
 
-      // Get the current access token
-      const token = isValidToken ? await this.getToken() : null;
-
-      // Use the exact endpoint as provided
-      const normalizedEndpoint = endpoint;
-
-      // Set up request configuration
-      const config = {
+      const response = await this.apiClient({
         method,
-        url: normalizedEndpoint.startsWith("/")
-          ? `${this.baseUrl}${normalizedEndpoint}`
-          : `${this.baseUrl}/${normalizedEndpoint}`,
-        headers: {
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-        // Disable redirect following so we don't lose headers
-        maxRedirects: 0,
-        validateStatus: function (status) {
-          return status >= 200 && status < 500; // Accept non-2xx status codes but reject server errors
-        },
+        url: endpoint,
+        data,
         ...options,
-      };
+      });
 
-      // Add authentication header if token exists
-      if (token) {
-        config.headers.Authorization = `Token ${token}`;
-        console.log(
-          `[ApiService] Adding token to ${method} ${normalizedEndpoint}: ${token.substring(
-            0,
-            10
-          )}...`
-        );
-      } else {
-        console.log(
-          `[ApiService] No token available for ${method} ${normalizedEndpoint}`
-        );
-      }
-
-      // Add data for non-GET requests
-      if (method.toUpperCase() !== "GET" && data) {
-        config.data = data;
-      }
-
-      // Add query parameters for GET requests
-      if (method.toUpperCase() === "GET" && data) {
-        config.params = data;
-      }
-
-      // Make the request
-      console.log(`[ApiService] Making ${method} request to ${config.url}`);
-
-      // Log headers for debugging
-      console.log(
-        `[ApiService] Request headers:`,
-        JSON.stringify(config.headers)
-      );
-
-      const response = await this.apiClient(config);
-
-      console.log(`[ApiService] Response status: ${response.status}`);
-
-      // Handle redirects with authentication preservation
-      if (response.status === 301 || response.status === 302) {
-        if (!response.headers.location) {
-          console.error(`[ApiService] Redirect without location header`);
-          return response.data;
-        }
-
-        console.log(
-          `[ApiService] Handling redirect to ${response.headers.location}`
-        );
-        let redirectUrl = response.headers.location;
-
-        // If it's a relative URL, make it absolute
-        if (!redirectUrl.startsWith("http")) {
-          // Handle absolute paths (starting with /)
-          if (redirectUrl.startsWith("/")) {
-            const baseUrlParts = this.baseUrl.split("/");
-            const baseWithoutPath = baseUrlParts.slice(0, 3).join("/"); // e.g., http://192.168.1.32:8000
-            redirectUrl = `${baseWithoutPath}${redirectUrl}`;
-          } else {
-            // Handle relative paths
-            redirectUrl = `${this.baseUrl}/${redirectUrl}`;
-          }
-        }
-
-        console.log(`[ApiService] Redirecting with auth to: ${redirectUrl}`);
-
-        // Create a new config with the redirect URL but keep all other settings
-        const redirectConfig = {
-          ...config,
-          url: redirectUrl,
-        };
-
-        // Explicitly ensure the Authorization header is set
-        if (token && !redirectConfig.headers.Authorization) {
-          redirectConfig.headers.Authorization = `Token ${token}`;
-        }
-
-        console.log(
-          `[ApiService] Redirect headers:`,
-          JSON.stringify(redirectConfig.headers)
-        );
-
-        // Follow the redirect manually
-        const redirectResponse = await this.apiClient(redirectConfig);
-        return redirectResponse.data;
-      }
-
+      console.log(`[ApiService] Response from ${endpoint}:`, response.data);
       return response.data;
     } catch (error) {
       // Handle different error scenarios
@@ -677,6 +586,8 @@ class ApiService {
             error.config?.url || "unknown URL"
           }`
         );
+        console.error(`[ApiService] Error response data:`, error.response.data);
+        console.error(`[ApiService] Error config:`, error.config);
 
         if (error.response.status === 401) {
           console.error(
@@ -684,17 +595,15 @@ class ApiService {
           );
         }
 
-        // Return empty object instead of throwing to prevent UI errors
-        console.error("[ApiService] Error details:", error.message);
-        return {};
+        throw error;
       } else if (error.request) {
         // Request was made but no response received
         console.error("[ApiService] No response received:", error.request);
-        return {};
+        throw new Error("Nie można połączyć się z serwerem. Sprawdź swoje połączenie internetowe.");
       } else {
         // Error setting up the request
         console.error("[ApiService] Error:", error.message);
-        return {};
+        throw new Error("Wystąpił błąd podczas wysyłania żądania.");
       }
     }
   }
@@ -709,18 +618,18 @@ class ApiService {
    */
   async setAuth(tokens, user = null) {
     if (tokens?.accessToken) {
-      await SecureStore.setItemAsync(TOKEN_KEY, tokens.accessToken);
+      await storage.setItem(TOKEN_KEY, tokens.accessToken);
       this.apiClient.defaults.headers.common[
-        "Authorization"
-      ] = `Bearer ${tokens.accessToken}`;
+        "Authentication"
+      ] = `Token ${tokens.accessToken}`;
     }
 
     if (tokens?.refreshToken) {
-      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken);
+      await storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
     }
 
     if (user) {
-      await SecureStore.setItemAsync("user", JSON.stringify(user));
+      await storage.setItem("user", JSON.stringify(user));
     }
   }
 
@@ -730,7 +639,7 @@ class ApiService {
    * @public
    */
   async getAccessToken() {
-    return await SecureStore.getItemAsync(TOKEN_KEY);
+    return await storage.getItem(TOKEN_KEY);
   }
 
   /**
@@ -739,7 +648,7 @@ class ApiService {
    * @public
    */
   async getUser() {
-    const userData = await SecureStore.getItemAsync("user");
+    const userData = await storage.getItem("user");
     return userData ? JSON.parse(userData) : null;
   }
 
@@ -757,10 +666,10 @@ class ApiService {
    * @public
    */
   async clearAuth() {
-    await SecureStore.deleteItemAsync(TOKEN_KEY);
-    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-    await SecureStore.deleteItemAsync("user");
-    delete this.apiClient.defaults.headers.common["Authorization"];
+    await storage.removeItem(TOKEN_KEY);
+    await storage.removeItem(REFRESH_TOKEN_KEY);
+    await storage.removeItem("user");
+    delete this.apiClient.defaults.headers.common["Authentication"];
   }
 
   /**
@@ -801,7 +710,7 @@ class ApiService {
     // Request interceptor to add the auth token
     this.apiClient.interceptors.request.use(
       async (config) => {
-        const token = await this.getAccessToken();
+        const token = await this.getToken();
         if (token) {
           config.headers.Authorization = `Token ${token}`;
         }
@@ -836,6 +745,6 @@ class ApiService {
 }
 
 // Export a single ApiService instance as Singleton
-export const apiService = new ApiService();
+const apiService = new ApiService();
 
 export default apiService;

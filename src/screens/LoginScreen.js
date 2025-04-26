@@ -114,7 +114,8 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    padding: 20,
+    backgroundColor: '#fff',
   },
   scrollContainer: {
     flexGrow: 1,
@@ -175,30 +176,31 @@ const styles = StyleSheet.create({
     color: "#555",
   },
   input: {
+    height: 50,
     borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    marginBottom: 15,
     paddingHorizontal: 15,
-    paddingVertical: 10,
-    fontSize: 16,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: '#fff',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
   },
   button: {
-    backgroundColor: "#4a90e2",
-    borderRadius: 5,
-    paddingVertical: 12,
+    height: 50,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#007AFF',
     marginTop: 20,
-    alignItems: "center",
   },
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   errorText: {
-    color: "red",
-    textAlign: "center",
-    marginBottom: 15,
+    color: 'red',
+    marginBottom: 10,
   },
 });
 

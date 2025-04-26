@@ -7,6 +7,31 @@ import { getApiUrl, getBaseUrl, DEV_MODE } from "../config/config";
 const API_URL = getApiUrl();
 console.log(`Using API URL: ${API_URL}`);
 
+// Storage helper
+const isWeb = Platform.OS === 'web';
+const storage = {
+  async getItem(key) {
+    if (isWeb) {
+      return localStorage.getItem(key);
+    }
+    return await SecureStore.getItemAsync(key);
+  },
+  async setItem(key, value) {
+    if (isWeb) {
+      localStorage.setItem(key, value);
+    } else {
+      await SecureStore.setItemAsync(key, value);
+    }
+  },
+  async removeItem(key) {
+    if (isWeb) {
+      localStorage.removeItem(key);
+    } else {
+      await SecureStore.deleteItemAsync(key);
+    }
+  }
+};
+
 // Funkcja do konwersji względnych ścieżek mediów na pełne adresy URL
 export const getFullMediaUrl = (relativePath) => {
   if (!relativePath) return null;
@@ -31,57 +56,44 @@ export const getFullMediaUrl = (relativePath) => {
 };
 
 // Create Axios instance
-const apiClient = axios.create({
+const api = axios.create({
   baseURL: API_URL,
+  timeout: 30000,
   headers: {
     "Content-Type": "application/json",
-  },
-  timeout: 30000, // Zwiększamy timeout do 30 sekund
+    "Accept": "application/json"
+  }
 });
 
-// Add interceptor to include auth token in requests
-apiClient.interceptors.request.use(
+// Add request interceptor
+api.interceptors.request.use(
   async (config) => {
-    try {
-      const token = await SecureStore.getItemAsync("userToken");
-      if (token) {
-        // Upewnij się, że nagłówki są zainicjowane
-        config.headers = config.headers || {};
-        config.headers.Authorization = `Token ${token}`;
-        console.log(`[Token added to request]: ${config.url}`);
-      } else {
-        console.log(`[No token available for request]: ${config.url}`);
-      }
-      console.log(
-        `[API Request] ${config.method?.toUpperCase()} ${config.url}`
-      );
-      return config;
-    } catch (error) {
-      console.error("Request interceptor error:", error);
-      return config;
+    const token = await storage.getItem("userToken");
+    if (token) {
+      config.headers.Authorization = `Token ${token}`;
+      console.log("[Token added to request]:", config.url);
     }
+    return config;
   },
   (error) => {
-    console.error("Request error:", error);
+    console.error("Request interceptor error:", error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for better error handling
-apiClient.interceptors.response.use(
+// Add response interceptor
+api.interceptors.response.use(
   (response) => {
-    console.log(
-      `[API Response] ${response.status} from ${response.config.url}`
-    );
+    console.log("[API Response]:", response.config.url, response.status);
     return response;
   },
   (error) => {
-    console.error("API Error:", error.message);
     if (error.response) {
-      console.error(`Status: ${error.response.status}`);
-      console.error("Data:", error.response.data);
+      console.error("API Error:", error.response.status, error.response.data);
     } else if (error.request) {
       console.error("No response received:", error.request);
+    } else {
+      console.error("Error setting up request:", error.message);
     }
     return Promise.reject(error);
   }
@@ -95,7 +107,7 @@ export const login = async (username, password) => {
     // Próba logowania z pełną ścieżką
     try {
       console.log("Trying auth endpoint");
-      const response = await apiClient.post("/auth", { username, password });
+      const response = await api.post("/auth", { username, password });
       console.log("Login successful:", response.data);
       return response.data;
     } catch (error) {
@@ -133,7 +145,7 @@ export const login = async (username, password) => {
 // User endpoints
 export const getCurrentUser = async () => {
   try {
-    const response = await apiClient.get("/user/current/");
+    const response = await api.get("/user/current/");
     return response.data;
   } catch (error) {
     console.error("Get current user error:", error.message);
@@ -143,7 +155,7 @@ export const getCurrentUser = async () => {
 
 export const getUserImage = async () => {
   try {
-    const response = await apiClient.get("/user/current/image");
+    const response = await api.get("/user/current/image");
     return response.data;
   } catch (error) {
     throw error;
@@ -153,7 +165,7 @@ export const getUserImage = async () => {
 // Workouts endpoints
 export const getGeneralWorkouts = async () => {
   try {
-    const response = await apiClient.get("/workouts/general/");
+    const response = await api.get("/workouts/general/");
     return response.data;
   } catch (error) {
     throw error;
@@ -162,7 +174,7 @@ export const getGeneralWorkouts = async () => {
 
 export const getPersonalWorkouts = async () => {
   try {
-    const response = await apiClient.get("/workouts/personal/");
+    const response = await api.get("/workouts/personal/");
     return response.data;
   } catch (error) {
     throw error;
@@ -171,7 +183,7 @@ export const getPersonalWorkouts = async () => {
 
 export const getTodayWorkouts = async () => {
   try {
-    const response = await apiClient.get("/workouts/personal/today/");
+    const response = await api.get("/workouts/personal/today/");
     return response.data;
   } catch (error) {
     throw error;
@@ -182,7 +194,7 @@ export const getTodayWorkouts = async () => {
 export const getTagCategories = async () => {
   try {
     // Sprawdź token przed wysłaniem żądania
-    const token = await SecureStore.getItemAsync("userToken");
+    const token = await storage.getItem("userToken");
     console.log(
       "Token przy pobieraniu kategorii:",
       token ? "Token dostępny" : "Brak tokena"
@@ -190,7 +202,7 @@ export const getTagCategories = async () => {
 
     // Jawnie dodajemy nagłówek Authorization dla pewności
     const headers = token ? { Authorization: `Token ${token}` } : {};
-    const response = await apiClient.get("/tagcategory", { headers });
+    const response = await api.get("/tagcategory", { headers });
 
     return response.data;
   } catch (error) {
@@ -207,18 +219,22 @@ export const getTagCategories = async () => {
 export const getExercises = async (tagId = null) => {
   try {
     // Sprawdź token przed wysłaniem żądania
-    const token = await SecureStore.getItemAsync("userToken");
+    const token = await storage.getItem("userToken");
     console.log(
       "Token przy pobieraniu ćwiczeń:",
       token ? "Token dostępny" : "Brak tokena"
     );
 
-    const url = tagId ? `/exercises?tag_id=${tagId}` : "/exercises";
+    // Buduj URL z filtrem tag_id jeśli jest podany
+    let url = "/exercises/";
+    if (tagId) {
+      url += `?tag_id=${tagId}`;
+    }
     console.log(`Sending request to: ${API_URL}${url}`);
 
     // Jawnie dodajemy nagłówek Authorization dla pewności
     const headers = token ? { Authorization: `Token ${token}` } : {};
-    const response = await apiClient.get(url, { headers });
+    const response = await api.get(url, { headers });
 
     return response.data;
   } catch (error) {
@@ -234,7 +250,7 @@ export const getExercises = async (tagId = null) => {
 export const getExerciseDetails = async (exerciseId) => {
   try {
     // Sprawdź token przed wysłaniem żądania
-    const token = await SecureStore.getItemAsync("userToken");
+    const token = await storage.getItem("userToken");
     console.log(
       "Token przy pobieraniu szczegółów ćwiczenia:",
       token ? "Token dostępny" : "Brak tokena"
@@ -242,7 +258,7 @@ export const getExerciseDetails = async (exerciseId) => {
 
     // Jawnie dodajemy nagłówek Authorization dla pewności
     const headers = token ? { Authorization: `Token ${token}` } : {};
-    const response = await apiClient.get(`/exercises/${exerciseId}/`, {
+    const response = await api.get(`/exercises/${exerciseId}/`, {
       headers,
     });
 
@@ -260,4 +276,4 @@ export const getExerciseDetails = async (exerciseId) => {
   }
 };
 
-export default apiClient;
+export default api;
