@@ -71,15 +71,27 @@ class WorkoutService {
    */
   async getWorkoutDetails(workoutId) {
     try {
-      console.log(`Fetching workout details for ID: ${workoutId}...`);
-      const response = await apiService.get(`/workout/${workoutId}/`);
-      console.log("Workout details response:", response);
+      console.log(`[WorkoutService] Fetching workout details for ID: ${workoutId}...`);
+      const response = await apiService.get(`/workout/${workoutId}/`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log("[WorkoutService] Workout details response:", response);
       return response.data || {};
     } catch (error) {
-      console.error(`Error fetching workout details for ID ${workoutId}:`, error);
+      console.error(`[WorkoutService] Get workout details error for ID ${workoutId}:`, error);
       if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
+        console.error("[WorkoutService] Response status:", error.response.status);
+        console.error("[WorkoutService] Response data:", error.response.data);
+      }
+      if (Platform.OS === 'ios') {
+        console.error("[WorkoutService] iOS specific error details:", {
+          message: error.message,
+          code: error.code,
+          response: error.response
+        });
       }
       return {};
     }

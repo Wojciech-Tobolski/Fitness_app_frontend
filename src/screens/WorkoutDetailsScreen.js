@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Platform,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
@@ -37,15 +38,33 @@ const WorkoutDetailsScreen = () => {
   const fetchWorkoutDetails = async () => {
     try {
       setLoading(true);
-      const data = await apiService.get(`/workout/${workoutId}/`);
-      console.log("Workout details:", data);
+      console.log("[WorkoutDetailsScreen] Fetching workout details...");
+      const data = await apiService.get(`/workout/${workoutId}/`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log("[WorkoutDetailsScreen] Workout details:", data);
       setWorkout(data);
 
       if (data && data.exercises && data.exercises.length > 0) {
+        console.log("[WorkoutDetailsScreen] Fetching exercises details...");
         fetchExercisesDetails(data.exercises);
       }
     } catch (error) {
-      console.error("Error fetching workout details:", error);
+      console.error("[WorkoutDetailsScreen] Error fetching workout details:", error);
+      if (error.response) {
+        console.error("[WorkoutDetailsScreen] Response status:", error.response.status);
+        console.error("[WorkoutDetailsScreen] Response data:", error.response.data);
+      }
+      if (Platform.OS === 'ios') {
+        console.error("[WorkoutDetailsScreen] iOS specific error details:", {
+          message: error.message,
+          code: error.code,
+          response: error.response
+        });
+      }
 
       // Handle authentication error
       if (error.response && error.response.status === 401) {

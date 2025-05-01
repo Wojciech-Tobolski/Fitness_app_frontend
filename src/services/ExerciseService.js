@@ -1,4 +1,5 @@
 import apiService from "./ApiService";
+import { Platform } from "react-native";
 
 /**
  * Klasa do zarządzania ćwiczeniami
@@ -10,11 +11,23 @@ class ExerciseService {
    */
   async getTagCategories() {
     try {
-      console.log("[ExerciseService] Fetching tag categories");
-      return await apiService.get("/tagcategory");
+      console.log("[ExerciseService] Fetching tag categories...");
+      const response = await apiService.get("/tagcategory");
+      console.log("[ExerciseService] Tag categories response:", response);
+      return response || [];
     } catch (error) {
       console.error("[ExerciseService] Get tag categories error:", error);
-      // Return empty array instead of throwing to prevent black screens
+      if (error.response) {
+        console.error("[ExerciseService] Response status:", error.response.status);
+        console.error("[ExerciseService] Response data:", error.response.data);
+      }
+      if (Platform.OS === 'ios') {
+        console.error("[ExerciseService] iOS specific error details:", {
+          message: error.message,
+          code: error.code,
+          response: error.response
+        });
+      }
       return [];
     }
   }
@@ -26,17 +39,32 @@ class ExerciseService {
    */
   async getExercises(tagId = null) {
     try {
-      const params = tagId ? { tag_id: tagId } : {};
       console.log(
         `[ExerciseService] Fetching exercises${
           tagId ? ` for tag ${tagId}` : ""
         }`
       );
-      // Use endpoint with trailing slash to avoid Django's 301 redirect
-      return await apiService.get(`/exercises?tag_id=${tagId}`);
+      
+      const endpoint = tagId ? `/exercises/?tag_id=${tagId}` : '/exercises/';
+      console.log(`[ExerciseService] Using endpoint: ${endpoint}`);
+      
+      const response = await apiService.get(endpoint);
+      
+      console.log("[ExerciseService] Exercises response:", response);
+      return response || [];
     } catch (error) {
       console.error("[ExerciseService] Get exercises error:", error);
-      // Return empty array instead of throwing to prevent black screens
+      if (error.response) {
+        console.error("[ExerciseService] Response status:", error.response.status);
+        console.error("[ExerciseService] Response data:", error.response.data);
+      }
+      if (Platform.OS === 'ios') {
+        console.error("[ExerciseService] iOS specific error details:", {
+          message: error.message,
+          code: error.code,
+          response: error.response
+        });
+      }
       return [];
     }
   }
@@ -51,14 +79,27 @@ class ExerciseService {
       console.log(
         `[ExerciseService] Fetching exercise details for ID ${exerciseId}`
       );
-      // Use endpoint with trailing slash to avoid Django's 301 redirect
-      return await apiService.get(`/exercises/${exerciseId}/`);
+      
+      const response = await apiService.get(`/exercises/${exerciseId}/`);
+      
+      console.log(`[ExerciseService] Exercise details response:`, response);
+      return response || {};
     } catch (error) {
       console.error(
         `[ExerciseService] Get exercise details error for ID ${exerciseId}:`,
         error
       );
-      // Return empty object instead of throwing to prevent black screens
+      if (error.response) {
+        console.error("[ExerciseService] Response status:", error.response.status);
+        console.error("[ExerciseService] Response data:", error.response.data);
+      }
+      if (Platform.OS === 'ios') {
+        console.error("[ExerciseService] iOS specific error details:", {
+          message: error.message,
+          code: error.code,
+          response: error.response
+        });
+      }
       return {};
     }
   }
@@ -69,23 +110,12 @@ class ExerciseService {
    * @returns {string|null} Pełny URL obrazu
    */
   getFullImageUrl(relativePath) {
+    if (!relativePath) return null;
     return apiService.getFullMediaUrl(relativePath);
   }
 
   async getExercisesByTag(tagId) {
-    try {
-      console.log(`Fetching exercises for tag ID: ${tagId}...`);
-      const data = await apiService.get(`/exercises/?tag_id=${tagId}`);
-      console.log("Exercises response:", data);
-      return data;
-    } catch (error) {
-      console.error(`Error fetching exercises for tag ID ${tagId}:`, error);
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
-      }
-      return [];
-    }
+    return this.getExercises(tagId);
   }
 }
 

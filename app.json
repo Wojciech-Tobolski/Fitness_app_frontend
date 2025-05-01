@@ -1,59 +1,36 @@
 {
   "expo": {
-    "name": "fitness_app",
-    "slug": "fitness_app",
+    "name": "Fitness App",
+    "slug": "fitness-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.fitnessapp.yourapp",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
-    },
-    "android": {
-      "package": "com.fitnessapp.yourapp",
-      "versionCode": 1,
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "permissions": [
-        "VIBRATE"
-      ]
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
-        }
-      ],
-      "expo-secure-store"
-    ],
-    "experiments": {
-      "typedRoutes": true
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "1c7f5ab0-ce79-498a-8c6c-12ec03c74a83"
-      }
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.trenerwitek.fitnessapp"
     },
-    "owner": "trenujz"
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.trenerwitek.fitnessapp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "scheme": "fitnessapp"
   }
 }

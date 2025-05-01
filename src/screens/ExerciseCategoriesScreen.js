@@ -68,14 +68,21 @@ const ExerciseCategoriesScreen = ({ navigation }) => {
         })
       }
     >
-      <Image
-        source={{
-          uri: item.image
-            ? exerciseService.getFullImageUrl(item.image)
-            : "https://via.placeholder.com/80",
-        }}
-        style={styles.tagImage}
-      />
+      {item.image ? (
+        <Image
+          source={{
+            uri: exerciseService.getFullImageUrl(item.image),
+          }}
+          style={styles.tagImage}
+          onError={(e) => {
+            console.error('[ExerciseCategoriesScreen] Image load error:', e.nativeEvent.error);
+          }}
+        />
+      ) : (
+        <View style={[styles.tagImage, styles.placeholderImage]}>
+          <Text style={styles.placeholderText}>?</Text>
+        </View>
+      )}
       <Text style={styles.tagName}>{item.name}</Text>
     </TouchableOpacity>
   );
@@ -223,6 +230,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     color: "white",
+  },
+  placeholderImage: {
+    backgroundColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 24,
+    color: '#999',
   },
 });
 
