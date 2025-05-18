@@ -55,7 +55,7 @@ const LoginScreen = () => {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.appName}>Fitness App</Text>
+          <Text style={styles.appName}>FitGlobe</Text>
         </View>
 
         <View style={styles.formContainer}>
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   scrollContainer: {
     flexGrow: 1,
@@ -178,28 +178,28 @@ const styles = StyleSheet.create({
   input: {
     height: 50,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     marginBottom: 15,
     paddingHorizontal: 15,
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+    backgroundColor: "#fff",
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   },
   button: {
     height: 50,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#007AFF',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#007AFF",
     marginTop: 20,
   },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   errorText: {
-    color: 'red',
+    color: "red",
     marginBottom: 10,
   },
 });
