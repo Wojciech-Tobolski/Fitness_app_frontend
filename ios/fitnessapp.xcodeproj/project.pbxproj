@@ -362,8 +362,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
-				PRODUCT_BUNDLE_IDENTIFIER = com.fitnessapp.yourapp;
-				PRODUCT_NAME = fitnessapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trenerwitek.fitnessapp;
+				PRODUCT_NAME = FitnessApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "fitnessapp/fitnessapp-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -390,8 +390,8 @@
 					"-lc++",
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
-				PRODUCT_BUNDLE_IDENTIFIER = com.fitnessapp.yourapp;
-				PRODUCT_NAME = fitnessapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.trenerwitek.fitnessapp;
+				PRODUCT_NAME = FitnessApp;
 				SWIFT_OBJC_BRIDGING_HEADER = "fitnessapp/fitnessapp-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
