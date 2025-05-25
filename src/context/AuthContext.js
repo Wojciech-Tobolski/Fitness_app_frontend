@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
         let token = null;
         try {
           token = await authService.getToken();
+          console.log("Token check result:", token ? "Token found" : "No token found");
         } catch (e) {
           console.log("No stored token found, user needs to log in");
         }
@@ -33,6 +34,9 @@ export const AuthProvider = ({ children }) => {
             await authService.logout();
             setUserToken(null);
           }
+        } else {
+          console.log("No token available, user needs to log in");
+          setUserToken(null);
         }
       } catch (e) {
         // Just log the error without showing to user

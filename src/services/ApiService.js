@@ -70,8 +70,11 @@ class ApiService {
   async _getHeaders() {
     const token = await this.getToken();
     if (!token) {
-      console.error("[ApiService] No token available for request");
-      throw new Error("No authentication token available");
+      console.log("[ApiService] No token available for request");
+      return {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      };
     }
     return {
       'Accept': 'application/json',
@@ -88,15 +91,10 @@ class ApiService {
       console.log(`[ApiService] Request data:`, data);
 
       const token = await this.getToken();
-      if (!token) {
-        console.error("[ApiService] No token available for request");
-        throw new Error("No authentication token available");
-      }
-
       const headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Token ${token}`,
+        ...(token ? { 'Authorization': `Token ${token}` } : {}),
         ...(options.headers || {})
       };
 
@@ -149,7 +147,7 @@ class ApiService {
       console.log("[ApiService] Getting token from storage");
       const token = await storage.getItem(TOKEN_KEY);
       if (!token) {
-        console.error("[ApiService] No token found in storage");
+        console.log("[ApiService] No token found in storage");
         return null;
       }
       this.token = token;

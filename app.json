@@ -2,7 +2,7 @@
   "expo": {
     "name": "Fitness App",
     "slug": "fitness-app",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,14 +16,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.trenerwitek.fitnessapp"
+      "bundleIdentifier": "com.fitnessapp.fitglobe"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.trenerwitek.fitnessapp"
+      "package": "com.fitnessapp.fitglobe"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,6 +31,12 @@
     "plugins": [
       "expo-router"
     ],
-    "scheme": "fitnessapp"
+    "scheme": "fitnessapp",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5856a5df-4eaa-4130-a3ab-e8db2304c11e"
+      }
+    }
   }
 }
