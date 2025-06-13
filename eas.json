@@ -20,7 +20,12 @@
         "withoutCredentials": true
       }
     },
-    "production": {}
+    "production": {
+      "ios": {
+        "distribution": "store",
+        "buildConfiguration": "Release"
+      }
+    }
   },
   "cli": {
     "version": ">= 0.60.0",
