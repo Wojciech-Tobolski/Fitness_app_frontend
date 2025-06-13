@@ -1,4 +1,4 @@
-package com.fitnessapp.yourapp
+package com.fitnessapp.fitglobe
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Fitness App",
+    "name": "FitnessApp",
     "slug": "fitness-app",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -37,6 +37,7 @@
       "eas": {
         "projectId": "5856a5df-4eaa-4130-a3ab-e8db2304c11e"
       }
-    }
+    },
+    "owner": "321nomyzs"
   }
 }
